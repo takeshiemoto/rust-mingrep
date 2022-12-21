@@ -1,21 +1,42 @@
-use std::env;
 use std::fs::File;
 use std::io::prelude::*;
+use std::{env, process};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+    // POINT: unwrap_or_elseはOkならOkの値を、Errなら独自のエラー処理を定義できる。
+    let config = Config::new(&args).unwrap_or_else(|err| {
+        println!("Problem parsing arguments: {}", err);
+        // POINT: process::exitはpanic!と違い余計な出力がない。
+        process::exit(1);
+    });
 
-    let query = &args[1];
-    let filename = &args[2];
+    println!("Searching for {}", config.query);
+    println!("In file {}", config.filename);
 
-    println!("Searching for {}", query);
-    println!("In file {}", filename);
-
-    let mut f = File::open(filename).expect("file not found");
+    let mut f = File::open(config.filename).expect("file not found");
 
     let mut content = String::new();
     f.read_to_string(&mut content)
         .expect("something went wrong reading the file");
 
     println!("With text:\n{}", content);
+}
+
+struct Config {
+    query: String,
+    filename: String,
+}
+
+impl Config {
+    // POINT: &'static strは文字列リテラルの型
+    fn new(args: &[String]) -> Result<Config, &'static str> {
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
+        let query = args[1].clone();
+        let filename = args[2].clone();
+
+        Ok(Config { query, filename })
+    }
 }
