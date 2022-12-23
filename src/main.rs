@@ -10,18 +10,15 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     // unwrap_or_elseはOkならOkの値を、Errなら独自のエラー処理を定義できる。
     let config = Config::new(&args).unwrap_or_else(|err| {
-        println!("Problem parsing arguments: {}", err);
+        eprintln!("Problem parsing arguments: {}", err);
         // process::exitはpanic!と違い余計な出力がない。
         process::exit(1);
     });
 
-    println!("Searching for {}", config.query);
-    println!("In file {}", config.filename);
-
     // if letでErr値を返したかを確認する
     // Ok値が不要なのでunwrapした値は不要。
     if let Err(e) = rust_mingrep::run(config) {
-        println!("Application error: {}", e);
+        eprintln!("Application error: {}", e);
         process::exit(1);
     }
 }
